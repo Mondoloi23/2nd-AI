@@ -1,0 +1,38 @@
+# Render blueprint for My AI v5.
+#
+# By default this deploys on the FREE plan. On the free plan the filesystem
+# is ephemeral, so my_ai.db (chat history) is wiped on every redeploy/restart.
+#
+# To persist chat history across deploys:
+#   1. Change `plan: free` to `plan: starter` below (persistent disks require
+#      a paid plan — Render does not support disks on the free tier).
+#   2. Uncomment the `disk:` block at the bottom.
+#   3. Uncomment the DATA_DIR env var below.
+# Render forbids mounting disks under /opt/render/project/src, so the disk
+# path below (/var/data) is used instead.
+
+services:
+  - type: web
+    name: my-ai-v5
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        value: openrouter/free
+      - key: APP_NAME
+        value: My AI v5
+      - key: APP_URL
+        fromService:
+          type: web
+          name: my-ai-v5
+          property: host
+      # - key: DATA_DIR
+      #   value: /var/data
+    # disk:
+    #   name: my-ai-data
+    #   mountPath: /var/data
+    #   sizeGB: 1
